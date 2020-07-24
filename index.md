@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PRoJEct-NeGYa
 
 黑客帝国风格的个人主页模板。
@@ -44,4 +45,9 @@
 * assets/fonts：字体文件
 * assets/js：脚本文件
 * _config.yml：配置文件
+=======
+[about](about.md)
+# Hack The Box writeups
+
+>>>>>>> 67dae2fb4046be90ad7914222408080a68afe851
 

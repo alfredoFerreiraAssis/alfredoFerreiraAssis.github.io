@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Settings
 title: pRoJEct-NeGYa
 owner: "DeerRIDER"
@@ -19,3 +20,6 @@ statement: "Designed by DeerRIDER, All Rights Reserved"
 toc_level: 3
 # texts randomly displayed in background
 bgtext: "αβγδεζηθικλμνξοπρστυφχψω∷∫∮∝∞∧∨∑∏∪∩∈∵∴⊥‖∠⌒⊙≌√"
+=======
+theme: jekyll-theme-hacker
+>>>>>>> 67dae2fb4046be90ad7914222408080a68afe851
