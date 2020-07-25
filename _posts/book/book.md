@@ -28,23 +28,23 @@ As always, begin with nmap
 >Nmap done: 1 IP address (1 host up) scanned in 12.69 second  
 
 Opening the port 80 I got this  
-![book1](_posts/book/img/book1.png)
+![book1](img/book1.png)
 
 After register I found the admin  email: admin@book.htb  
-![book2](_posts/book/img/book3.png)
+![book2](img/book3.png)
 At first I didn't know what to do with this  
 Until I back to home page, look the source and find this  
-![book3](_posts/book/img/book2.png)  
+![book3](img/book2.png)  
 
 ### SQL Truncation
 
 Using *[SQL truncation](https://resources.infosecinstitute.com/sql-truncation-attack/)* with Burp Suite I tested "name" and "email" fields with more characters  
 
-![book4](_posts/book/img/book4.png)  
+![book4](img/book4.png)  
 
 Logged in with the credentials admin@book.htb qwerty  
 
-![book5](_posts/book/img/book5.png)  
+![book5](img/book5.png)  
 
 Using *[this](https://www.noob.ninja/2017/11/local-file-read-via-xss-in-dynamically.html)* as reference I found a way in  
 ### Exploit
@@ -56,7 +56,7 @@ x=new XMLHttpRequest;x.onload=function(){document.write(this.responseText)};x.op
 
 Downloading the pdf at http://10.10.10.176/admin/collections.php?type=collections I got the /etc/passwd  
 
-![book6](_posts/book/img/book6.png)  
+![book6](img/book6.png)  
 
 If I was runnin to get user blood next step would be "file:///home/reader/user.txt"  
 
@@ -66,11 +66,11 @@ Now I know that there is a user called reader, I chnged the script part "///etc/
 
 Copy that to another file called id\_rsa and "chmod 600 id\_rsa"  
 
-![book7](_posts/book/img/book7.png)  
+![book7](img/book7.png)  
 
 Now just "ssh -i id\_rsa reader@10.10.10.176" and smile  
 
-![book8](_posts/book/img/book8.png)
+![book8](img/book8.png)
 # Priv Esc
 
 After a enumerte almost everything and don't find nothing  
@@ -81,7 +81,7 @@ scp -i id\_rsa pspy64s reader@10.10.10.176
 
 pspy give me this process logrotate /usr/sbin/logrotate -f /root/log.cfg  
 
-![book9](_posts/book/img/book9.png)
+![book9](img/book9.png)
 
 Search logrotate exploit in google and found [this](https://github.com/whotwagner/logrotten) on github  
 Cloned the repository and uploaded it with scp command  
@@ -91,11 +91,11 @@ gcc -o logrotten logrotten.c
 
 Created the payload  and executed logrotten
 
-![book10](_posts/book/img/book10.png)  
+![book10](img/book10.png)  
 
 Now just cat /tmp/id\_rsa to another file and ssh to root
 
 
-![book11](_posts/book/img/book11.png)  
-![book12](_posts/book/img/book12.png)  
+![book11](img/book11.png)  
+![book12](img/book12.png)  
 
