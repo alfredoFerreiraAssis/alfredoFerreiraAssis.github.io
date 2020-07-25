@@ -1,8 +1,8 @@
 ## Settings
 title: h4cknroll
 owner: "41fr3d0"
-url: "https://akiritsu.github.io"
-baseurl: "/pRoJEct-NeGYa"
+url: "https://h4cknroll.com.br"
+baseurl: "/"
 permalink: /:title/
 description: ""
 markdown: kramdown
