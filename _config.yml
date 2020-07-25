@@ -11,7 +11,8 @@ webrick:
     Access-Control-Allow-Origin: "*"
 ## Global Variables
 email: "alfredoferreiradeassis@hotmail.com"
-github: "https://github.com/alfredoFerreiraAssis"
+github: "alfredoFerreiraAssis"
+about: "about.md" 
 # path to: css/, fonts/, img/ and js/
 assets_path: "/assets" # i.e. "/assets" 
 statement: "Designed by DeerRIDER, All Rights Reserved"
