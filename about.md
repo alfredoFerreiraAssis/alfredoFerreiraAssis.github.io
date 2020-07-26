@@ -15,4 +15,4 @@ Thank you for visiting h4cknroll.com.br, and have a good day!.
   
   
 Disclaimer
-All information in this site is for __educational__ propose. Author and site are _no_ way resposible for any misuse of the information and _do not_ encourage or promote unethical hacking.
+All information in this site is for __educational__ propose. Author and site are ___no___ way resposible for any misuse of the information and ___do not___ encourage or promote unethical hacking.
