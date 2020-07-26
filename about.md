@@ -1,7 +1,7 @@
 
-My name is __Alfredo__, student of computer science and information security enthusiast from Brazil.  
+Hi there, my name is __Alfredo__, student of computer science and information security enthusiast from Brazil.  
 
-![Alfredo](/assets/img/whoami.png) I'll finish my degree in the end of this year and i'm studying for get certificates in Linux and information security,if you liked any post or it helped you in something, please wish me luck.  
+I'll finish my degree in the end of this year and i'm studying for get certificates in Linux and information security,if you liked any post or it helped you in something, please wish me luck.  
   
   
   
