@@ -7,7 +7,6 @@ btn_text: true
 footer: true
 title: "h4ck n' roll"
 author: "41fr3d0"
-encrypted_text: true
 permalink: /
 ---
 
