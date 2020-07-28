@@ -12,12 +12,9 @@ permalink: /
 ---
 
 # Hack The Box Write-Ups
-<<<<<<< HEAD
- [![Book](/assets/img/book/book.png)](_posts/book/2020-07-25-book.md)
- [![Sauna](/assets/img/sauna/sauna.png)](_posts/sauna/2020-07-28-sauna.md)
-=======
- [![Book](/assets/img/book/book.png "Book")](_posts/2020-07-25-book.md)
+
+[![Book](/assets/img/book/book.png "Book")](_posts/book/2020-07-25-book.md)
+
+[![Sauna](/assets/img/sauna/sauna.png "Sauna")](_posts/sauna/2020-07-28-sauna.md)
  
- [![Sauna](/assets/img/sauna/sauna.png "Sauna")](_posts/2020-07-28-sauna.md)
- 
->>>>>>> 80aab8e1f96e69c6359678b824b87736919987f5
+
