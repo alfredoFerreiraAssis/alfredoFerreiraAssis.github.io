@@ -97,7 +97,7 @@ References: [lua](https://www.tutorialspoint.com/lua/lua_file_io.htm) & [python]
 ![lua](/assets/img/dyplesher/dyplesher26.png)  
 ![pythonScript](/assets/img/dyplesher/dyplesher25.png)  
 Using this script *delight* I able to get root access and drink my orange juice  
-![JailsonMendesAprova](/assets/img/dyplesher/dyplesher00.png)  
+![JailsonMendesAprova](/assets/img/dyplesher/dyplesher00.jpg)  
 I started my python server with *python3 -m http.server 11211* and executed my script  
 Now I can drink my orange juice  
 ![root](/assets/img/dyplesher/dyplesher27.png)
