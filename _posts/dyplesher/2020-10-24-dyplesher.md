@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  htb-dyplesher
+title:  Hack The Box - Dyplesher
 category: walkthrough
 date:   2020-10-24 16:00:00
 ---
