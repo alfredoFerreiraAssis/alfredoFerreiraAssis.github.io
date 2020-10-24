@@ -75,7 +75,7 @@ This is the pass to dyplesher.htb/login
 Then I found the page "AddPlugin" and tried to add some files to see its response  
 ### Exploit
 ![addPlugin](/assets/img/dyplesher/dyplesher18.png)  
-It has to be a .jar file, so... after remember my java lessons and google some things I coded one that allows me to use SSH  
+It has to be a .jar file. So, after remember my java lessons and google some things, I coded one that allows me to use SSH  
 ![.java](/assets/img/dyplesher/dyplesher19.png)  
 Logged as MinatoTW  
 ![ssh](/assets/img/dyplesher/dyplehser20.png)  
