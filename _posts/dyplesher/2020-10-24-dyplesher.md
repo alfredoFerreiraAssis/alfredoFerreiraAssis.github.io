@@ -96,9 +96,10 @@ I had to write a [cuberite plugin](https://api.cuberite.org/Writing-a-Cuberite-p
 References: [lua](https://www.tutorialspoint.com/lua/lua_file_io.htm) & [python](https://pika.readthedocs.io/en/stable/modules/credentials.html)  
 ![lua](/assets/img/dyplesher/dyplesher26.png)  
 ![pythonScript](/assets/img/dyplesher/dyplesher25.png)  
-Using this script *delight* I can get root access and drink my orange juice  
-![JailsonMendesAprova](/assets/img/dyplesher/dyplesher00.jpg)  
-I started my python server with *python3 -m http.server 11211* and executed my script  
+Using this script *delight* I can get root access and go drink my orange juice  
+I started my python server with *python3 -m http.server 11211* and executed the script  
+![root](/assets/img/dyplesher/dyplesher27.png)  
 Now I can drink my orange juice  
-![root](/assets/img/dyplesher/dyplesher27.png)
+
+![JailsonMendesAprova](/assets/img/dyplesher/dyplesher00.jpg)  
 
