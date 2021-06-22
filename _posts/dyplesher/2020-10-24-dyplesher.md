@@ -5,7 +5,7 @@ category: walkthrough
 date:   2020-10-24 16:00:00
 ---
 # ![dyplesher](/assets/img/dyplesher/dyplesher.png)  
-dyplehser is a insane machine created by [felamos](https://www.hackthebox.eu/home/users/profile/27390) & [yuntao](https://www.hackthebox.eu/home/users/profile/12438)  
+# Dyplehser is a insane machine created by [felamos](https://www.hackthebox.eu/home/users/profile/27390) & [yuntao](https://www.hackthebox.eu/home/users/profile/12438)  
 # Enumaration  
 ### nmap
 As always, begin with nmap...    
