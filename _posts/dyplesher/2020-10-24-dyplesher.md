@@ -9,7 +9,9 @@ date:   2020-10-24 16:00:00
 # Enumaration  
 ### <center>nmap</center>
 <center>As always, begin with nmap...</center>    
+<hr>
 nmap -Pn -p 22,80,3000,4369,5672,11211 10.10.10.190  
+<hr>
 >Starting Nmap 7.70 ( https://nmap.org ) at 2020-08-22 05:30 -03  
 >Nmap scan report for dyplesher.htb (10.10.10.190)  
 >Host is up (0.13s latency).  
@@ -40,8 +42,10 @@ nmap -Pn -p 22,80,3000,4369,5672,11211 10.10.10.190
   
 # ![ffuf](/assets/img/dyplesher/dyplesher5.png)  
 ### <center>GitTools</center>
-<p align="center">So I used <a href="https://github.com/internetwache/GitTools">GitTools</a></p><br>  
+<p align="center">So I used <a href="https://github.com/internetwache/GitTools">GitTools</a></p><br>
+<hr>
 <center>./gitdumper.sh http://test.dyplesher.htb/.git/ ../../test.dyplesher</center>  
+<hr>
 # ![gitdumper](/assets/img/dyplesher/dyplesher6.png)  
 <center>back to the directory I created</center>  
 <center>git restore index.php</center>  
@@ -58,7 +62,7 @@ and install <a href="https://www.npmjs.com/package/memcached-cli">memcached-cli<
 # ![john](/assets/img/dyplesher/dyplesher9.png)  
 ### <center>gogs</center>
 # ![port3000](/assets/img/dyplesher/dyplesher10.png)  
-<center>Felamos has 2 repositories: gitblab and memcached and gitlab has 1 release</center> 
+<center>Felamos has 2 repositories: gitblab and memcached<br> and gitlab has 1 release</center> 
 
 <center>I download everything</center>  
 
@@ -98,7 +102,7 @@ and install <a href="https://www.npmjs.com/package/memcached-cli">memcached-cli<
 
 <center>Logged as MinatoTW</center>  
 
-# ![ssh](/assets/img/dyplesher/dyplehser20.png)  
+# ![ssh](/assets/img/dyplesher/dyplesher20.png)  
 
 <center>Minato is in the wireshark group</center>  
 
@@ -108,7 +112,7 @@ and install <a href="https://www.npmjs.com/package/memcached-cli">memcached-cli<
 
 <center>Using strings and grep I can see some clear text passwords</center>  
 
-# ![passwords](/asstes/img/dyplesher/dyplesher22.png)  
+# ![passwords](/assets/img/dyplesher/dyplesher22.png)  
 
 # ![password](/assets/img/dyplesher/dyplesher24.png)  
 
