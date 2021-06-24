@@ -70,13 +70,13 @@ and install <a href="https://www.npmjs.com/package/memcached-cli">memcached-cli<
 
 # ![memcached.git](/assets/img/dyplesher/dyplesher12.png)  
 
-# ![gitlab.git](/assets/img//dyplehser/dyplesher13.png)    
+# ![gitlab.git](/assets/img/dyplesher/dyplesher13.png)    
 
 <center>Looking the files I found a directory named @hashed, with git bundles</center>  
 
 <center>So I used git clone</center>  
 
-# ![bundles](/assets/img/dyplesher/dypĺesher14.png)  
+# ![bundles](/assets/img/dyplesher/dyplesher14.png)  
 
 <center>Enumerating I found user.db, that contais a hash</center>  
 
@@ -108,7 +108,7 @@ and install <a href="https://www.npmjs.com/package/memcached-cli">memcached-cli<
 
 <p align="center"> Using <a href="https://www.wireshark.org/docs/man-pages/tshark.html">tshark</a> I can capture packet data from the network</p><br>  
 
-# ![tshark](/assets/img/dyplesher/dyplesher.21png)  
+# ![tshark](/assets/img/dyplesher/dyplesher21.png)  
 
 <center>Using strings and grep I can see some clear text passwords</center>  
 
@@ -138,7 +138,7 @@ References: <a href="https://www.tutorialspoint.com/lua/lua_file_io.htm">lua</a>
 
 <center>Using this script *delight* I can get root access and go drink my orange juice</center>  
 
-<center>I started my python server with *python3 -m http.server 11211* and executed the script</center>  
+<center>I started my python server with <br><hr>python3 -m http.server 11211<hr><br> and executed the script</center>  
 
 # ![root](/assets/img/dyplesher/dyplesher27.png)  
 
