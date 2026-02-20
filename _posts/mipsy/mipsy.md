@@ -1,6 +1,6 @@
 # MIPSY
 
-# ![mipsy](/assets/mipsy.jpg)
+# ![mipsy](/assets/img/mipsy/mipsy.jpg)
 
 ## Introduction
 
@@ -69,7 +69,7 @@ nmap -sC -sV -p- mipsy.htb
 ```
 
 
-# ![nmap](/assets/nmap.jpg) 
+# ![nmap](/assets/img/mipsy/nmap.jpg) 
 
 Two ports are open: SSH on port 22 and a custom service on port 23 that identifies itself as "PHOTON GATEWAY — FIRMWARE CONSOLE". The banner explicitly mentions that guest or anonymous access is enabled for diagnostics.
 
@@ -109,7 +109,7 @@ After logging in, we see a menu. We select option `[2] Files` to enter the file 
 
 photon> 2
 ```
-# ![ftelnet](/assets/fake_telnet.jpg)
+# ![ftelnet](/assets/img/mipsy/fake_telnet.jpg)
 
 ## Firmware File Browser
 
@@ -144,7 +144,7 @@ files:/firmware/squashfs-root/etc$ cat config_default.xml
 <Value Name="INIT_LINE" Value="1"/>
 <Value Name="INIT_SCRIPT" Value="1"/>
 ```
-# ![userpass](/assets/userpass.jpg)
+# ![userpass](/assets/img/mipsy/userpass.jpg)
 
 The XML configuration file contains multiple user credentials in cleartext. We note the `arthur.dev` developer account with its password. There is also a `superuser` account with a different password that serves as a red herring.
 
@@ -166,7 +166,7 @@ arthur.dev
 arthur.dev@mipsy:~$ cat user.txt
 <USER_FLAG>
 ```
-# ![userflag](/assets/userflag.jpg)
+# ![userflag](/assets/img/mipsy/userflag.jpg)
 
 We obtain the **user flag**.
 
@@ -208,7 +208,7 @@ And further down:
   */
 ```
 
-# ![photonctlc](/assets/photonctlc.jpg)
+# ![photonctlc](/assets/img/mipsy/photonctlc.jpg)
 
 The source code reveals that:
 1. There is a binary called `photonctl` deployed to the firmware SquashFS
@@ -265,7 +265,7 @@ arthur.dev@mipsy:~/firmware-test/squashfs-root/usr/bin$ qemu-mipsel ./photonctl 
 [+] Root credential: <15_HASH_CHARS>
 ```
 
-# ![qemumipsel](/assets/qemumipsel.jpg)
+# ![qemumipsel](/assets/img/mipsy/qemumipsel.jpg)
 
 The tool validates our token and outputs a "Root credential" — a 15-character hash string derived from firmware metadata and the developer token.
 
@@ -285,7 +285,7 @@ root@mipsy:~# cat /root/root.txt
 We obtain the **root flag**. The machine is fully compromised.
 
 
-# ![root](/assets/root.jpg)
+# ![root](assets/img/mipsy/root.jpg)
 
 ---
 
